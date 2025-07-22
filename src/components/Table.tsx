@@ -7,24 +7,35 @@ import { useRef, useState } from "react";
 interface TableProps {
     data: Artwork[];
     rows: number;
+    page: number;
     selectedRows: Artwork[];
     setSelectedRows: (it: Artwork[]) => void;
+    totalRecords: number;
+    onPageChange: (e: any) => void; // useful for API pagination
 }
 
-export default function Table({ data, rows, selectedRows, setSelectedRows }: TableProps) {
+export default function Table({
+    data,
+    rows,
+    page,
+    selectedRows,
+    setSelectedRows,
+    totalRecords,
+    onPageChange
+}: TableProps) {
     const overlayRef = useRef<OverlayPanel>(null);
     const [selectCount, setSelectCount] = useState(0);
+    const first = (page - 1) * rows;
+
     const onSelectionChange = (newSelected: any) => {
         const currentPageIds = data.map((item) => item.id);
-        // Keep rows from other pages and newly selected from current page
         const updatedSelection = [
-            // old selections not from this page
             ...selectedRows.filter((item) => !currentPageIds.includes(item.id)),
-            // new selections from this page
             ...newSelected.filter((item: any) => currentPageIds.includes(item.id)),
         ];
         setSelectedRows(updatedSelection);
     };
+
 
     return (
         <DataTable
@@ -35,14 +46,18 @@ export default function Table({ data, rows, selectedRows, setSelectedRows }: Tab
             onSelectionChange={(e: any) => onSelectionChange(e.value)}
             dataKey="id"
             rows={rows}
-            tableStyle={{ minWidth: "60rem" }}
+            lazy
             paginator
+            totalRecords={totalRecords}
+            onPage={(e) => onPageChange(e)}
+            first={first}
+            tableStyle={{ minWidth: "60rem" }}
         >
-
             <Column
                 selectionMode="multiple"
                 header={() => (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-between gap-1">
+                        <span></span>
                         <button
                             type="button"
                             className="bg-gray-200 px-2 py-1 m-1 rounded hover:bg-gray-300 text-xs"
@@ -50,7 +65,6 @@ export default function Table({ data, rows, selectedRows, setSelectedRows }: Tab
                         >
                             #
                         </button>
-
                         <OverlayPanel ref={overlayRef} dismissable>
                             <div className="p-2 w-48">
                                 <label className="block text-sm text-gray-700 mb-1">Select count:</label>
@@ -67,8 +81,7 @@ export default function Table({ data, rows, selectedRows, setSelectedRows }: Tab
                                     onClick={(e) => {
                                         onSelectionChange(data.slice(0, selectCount));
                                         overlayRef.current?.toggle(e);
-                                    }
-                                    }
+                                    }}
                                 >
                                     Select
                                 </button>
@@ -78,12 +91,12 @@ export default function Table({ data, rows, selectedRows, setSelectedRows }: Tab
                 )}
                 headerStyle={{ width: "4rem" }}
             />
-            <Column field="title" header="Title" />
-            <Column field="place_of_origin" header="Origin" />
-            <Column field="artist_display" header="Artist" />
-            <Column field="inscriptions" header="Inscriptions" />
-            <Column field="date_start" header="Start Date" />
-            <Column field="date_end" header="End Date" />
+            <Column field="title" header="Title" filter />
+            <Column field="place_of_origin" header="Origin" filter />
+            <Column field="artist_display" header="Artist" filter />
+            <Column field="inscriptions" header="Inscriptions" filter />
+            <Column field="date_start" header="Start Date" filter />
+            <Column field="date_end" header="End Date" filter />
         </DataTable>
-    )
+    );
 }

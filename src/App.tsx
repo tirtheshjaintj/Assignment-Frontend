@@ -27,6 +27,7 @@ export default function App() {
   const [data, setData] = useState<Artwork[]>([]);
   const [selectedRows, setSelectedRows] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
 
 
   const getData = async () => {
@@ -39,6 +40,7 @@ export default function App() {
       setData(data.data);
       setRows(data.pagination.limit || 12);
       setTotalPage(data.pagination.total_pages || 1);
+      setTotalRecords(data.pagination.total || data.pagination.total_pages * data.pagination.limit);
     } catch (error) {
       toast.error("Error while fetching data");
       console.error(error);
@@ -62,11 +64,19 @@ export default function App() {
         transition={{ duration: 0.6 }}
       >
         <div className="relative w-full max-w-7xl rounded-xl shadow-md bg-white p-4">
-          <Topbar page={page} setPage={setPage} totalPage={totalPage} />
+          <Topbar page={page} setPage={setPage} totalPage={totalPage} totalSelected={selectedRows.length} />
           {loading ? (
             <Skeleton />
           ) : (
-            <Table data={data} rows={rows} selectedRows={selectedRows} setSelectedRows={setSelectedRows} />
+            <Table
+              data={data}
+              rows={rows}
+              page={page}
+              totalRecords={totalRecords}
+              selectedRows={selectedRows}
+              setSelectedRows={setSelectedRows}
+              onPageChange={(e: any) => setPage(e.page + 1)} // PrimeReact page is 0-indexed
+            />
           )}
         </div>
       </motion.div>
