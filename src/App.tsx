@@ -20,6 +20,7 @@ export interface Artwork {
 }
 
 export default function App() {
+
   const [page, setPage] = useState<number>(1);
   const [totalPage, setTotalPage] = useState<number>(1);
   const [rows, setRows] = useState(12);
