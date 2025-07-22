@@ -20,7 +20,6 @@ export interface Artwork {
 }
 
 export default function App() {
-
   const [page, setPage] = useState<number>(1);
   const [totalPage, setTotalPage] = useState<number>(1);
   const [rows, setRows] = useState(12);
@@ -28,7 +27,9 @@ export default function App() {
   const [selectedRows, setSelectedRows] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [selectCount, setSelectCount] = useState(0);
 
+  const [manuallyDeselectedIds, setManuallyDeselectedIds] = useState<Set<number>>(new Set());
 
   const getData = async () => {
     setLoading(true);
@@ -53,6 +54,43 @@ export default function App() {
     getData();
   }, [page]);
 
+  useEffect(() => {
+    if (loading || !data.length) return;
+
+    // Only auto-select on pages that haven't been visited
+    const alreadySelectedIds = new Set(selectedRows.map((item) => item.id));
+    const needed = selectCount - selectedRows.length;
+
+    if (needed <= 0) return;
+
+    const newToAdd = data.filter(
+      (item) =>
+        !alreadySelectedIds.has(item.id) &&
+        !manuallyDeselectedIds.has(item.id)
+    );
+
+    const additions = newToAdd.slice(0, needed);
+
+    if (additions.length > 0) {
+      setSelectedRows((prev) => [...prev, ...additions]);
+    }
+
+  }, [data]);
+
+  const handleSelectionChange = (newSelected: Artwork[]) => {
+    const newSelectedIds = new Set(newSelected.map((item) => item.id));
+    const deselected = selectedRows.filter((item) => !newSelectedIds.has(item.id));
+
+    setManuallyDeselectedIds((prev) => {
+      const updated = new Set(prev);
+      deselected.forEach((d) => updated.add(d.id));
+      return updated;
+    });
+
+    setSelectedRows(newSelected);
+  };
+
+
 
   return (
     <>
@@ -64,7 +102,12 @@ export default function App() {
         transition={{ duration: 0.6 }}
       >
         <div className="relative w-full max-w-7xl rounded-xl shadow-md bg-white p-4">
-          <Topbar page={page} setPage={setPage} totalPage={totalPage} totalSelected={selectedRows.length} />
+          <Topbar
+            page={page}
+            setPage={setPage}
+            totalPage={totalPage}
+            totalSelected={selectedRows.length}
+          />
           {loading ? (
             <Skeleton />
           ) : (
@@ -74,8 +117,10 @@ export default function App() {
               page={page}
               totalRecords={totalRecords}
               selectedRows={selectedRows}
-              setSelectedRows={setSelectedRows}
-              onPageChange={(e: any) => setPage(e.page + 1)} // PrimeReact page is 0-indexed
+              setSelectedRows={handleSelectionChange}
+              onPageChange={(e: any) => setPage(e.page + 1)} // PrimeReact is 0-indexed
+              selectCount={selectCount}
+              setSelectCount={setSelectCount}
             />
           )}
         </div>

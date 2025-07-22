@@ -12,6 +12,8 @@ interface TableProps {
     setSelectedRows: (it: Artwork[]) => void;
     totalRecords: number;
     onPageChange: (e: any) => void; // useful for API pagination
+    selectCount: number;
+    setSelectCount: (e: any) => void;
 }
 
 export default function Table({
@@ -21,10 +23,11 @@ export default function Table({
     selectedRows,
     setSelectedRows,
     totalRecords,
-    onPageChange
+    onPageChange,
+    selectCount,
+    setSelectCount
 }: TableProps) {
     const overlayRef = useRef<OverlayPanel>(null);
-    const [selectCount, setSelectCount] = useState(0);
     const first = (page - 1) * rows;
 
     const onSelectionChange = (newSelected: any) => {
