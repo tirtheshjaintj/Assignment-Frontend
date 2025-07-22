@@ -2,7 +2,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { OverlayPanel } from "primereact/overlaypanel";
 import type { Artwork } from "../App";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 interface TableProps {
     data: Artwork[];
